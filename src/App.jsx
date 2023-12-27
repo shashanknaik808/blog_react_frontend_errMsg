@@ -9,19 +9,19 @@ import Signup from './components/Signup';
 import AddBlogs from './components/AddBlogs';
 import UserBlogs from './components/UserBlogs';
 import BlogDetail from './components/BlogDetail';
-import Blog from './components/Blog'
+import Blog from './components/Blog';
 
 export class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isLoggedIn: true,
-    }
+      isLoggedIn: false,
+    };
     this.setLoggedIn = this.setLoggedIn.bind(this);
   }
 
-  setLoggedIn() {
-    this.setState()
+  setLoggedIn(isLoggedIn) {
+    this.setState({ isLoggedIn });
   }
 
   render() {
@@ -41,9 +41,8 @@ export class App extends Component {
           <Route path='/editBlog/:id' element={<BlogDetail />} />
         </Routes>
         <Footer />
-
       </>
-    )
+    );
   }
 }
 
