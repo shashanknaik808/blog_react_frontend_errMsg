@@ -74,6 +74,19 @@ function Sample() {
                     <Button type="submit" variant="contained" sx={{ borderRadius: 3, marginTop: 3 }} color="warning">Submit</Button>
                 </Box>
             </form>
+            <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+                marginTop={2}
+            >
+                <TextField
+                    error
+                    id="outlined-error"
+                    label="Error"
+                    defaultValue="Hello World"
+                />
+            </Box>
         </div>
     );
 }
