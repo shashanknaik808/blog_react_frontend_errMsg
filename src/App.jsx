@@ -1,49 +1,34 @@
-import React, { Component } from 'react';
-import Navbar from './components/Navbar';
-import Home from './components/Home.jsx';
-import Footer from './components/Footer';
-import Login from './components/Login';
-import { Route, Routes } from 'react-router-dom';
-import Logout from './components/Logout';
-import Signup from './components/Signup';
-import AddBlogs from './components/AddBlogs';
+import './App.css';
+import Header from './components/Header';
+import React, { useState } from 'react';
+import Auth from "./components/Auth";
+import Blogs from "./components/Blogs";
+import AddBlog from "./components/AddBlog";
 import UserBlogs from './components/UserBlogs';
-import BlogDetail from './components/BlogDetail';
-import Blog from './components/Blog';
+import BlogDetail from "./components/BlogDetail";
 
-export class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isLoggedIn: false,
-    };
-    this.setLoggedIn = this.setLoggedIn.bind(this);
-  }
+import { Route, Routes } from 'react-router-dom';
 
-  setLoggedIn(isLoggedIn) {
-    this.setState({ isLoggedIn });
-  }
-
-  render() {
-    return (
-      <>
-        <Navbar />
+function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  return (
+    <React.Fragment >
+      <header>
+        <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      </header>
+      <main>
         <Routes>
-          <Route path='/' element={<Home />} />
-          <Route path='/auth' element={<Login setLoggedIn={this.setLoggedIn} />} />
-          <Route path='/auth/logout' element={<Logout setLoggedIn={this.setLoggedIn} />} />
-          <Route path='/auth/signup' element={<Signup setLoggedIn={this.setLoggedIn} />} />
-
-          <Route path='/' element={<Home />} />
-          <Route path='/blog/:id' element={<Blog />} />
-          <Route path='/blog/add' element={<AddBlogs isLoggedIn={this.state.isLoggedIn} />} />
-          <Route path='/myBlogs' element={<UserBlogs />} />
-          <Route path='/editBlog/:id' element={<BlogDetail />} />
+          {!isLoggedIn ? <Route path='/auth' element={<Auth setIsLoggedIn={setIsLoggedIn} />} /> :
+            <>
+              <Route path='/blogs' element={<Blogs />} />
+              <Route path='/myBlogs' element={<UserBlogs />} />
+              <Route path='/myBlogs/:id' element={<BlogDetail />} />
+              <Route path='/blogs/add' element={<AddBlog />} />
+            </>}
         </Routes>
-        <Footer />
-      </>
-    );
-  }
+      </main>
+    </React.Fragment>
+  );
 }
 
 export default App;

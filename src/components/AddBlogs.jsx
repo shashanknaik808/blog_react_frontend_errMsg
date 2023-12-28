@@ -3,11 +3,9 @@ import axios from 'axios';
 
 function AddBlogs() {
     const [state, setState] = useState({
-        inputs: {
-            title: '',
-            description: '',
-            image: '',
-        },
+        title: '',
+        description: '',
+        image: '',
         error: {
             errFlag: false,
             errStatus: '',

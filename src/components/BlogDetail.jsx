@@ -1,172 +1,92 @@
-import React, { useState, useEffect } from 'react';
+import { Box, Button, InputLabel, TextField, Typography } from '@mui/material';
 import axios from 'axios';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
-function BlogDetail() {
-    const [inputs, setInputs] = useState({
-        title: '',
-        description: '',
-        image: '',
-    });
+const labelStyle = { mb: 1, mt: 2, fontSize: '24px', fontWeight: 'bold' };
 
-    async function fetchDetails(id) {
+function BlogDetail(props) {
+    const navigate = useNavigate();
+    const [blog, setBlog] = useState();
+    const id = useParams().id;
+    const [inputs, setInputs] = useState();
+
+    const handleChange = (e) => {
+        setInputs((prevState) => ({
+            ...prevState,
+            [e.target.name]: e.target.value
+        }));
+    };
+
+    const fetchDetails = useCallback(async () => {
         try {
             const res = await axios.get(`http://localhost:5000/api/blog/${id}`);
             const data = res.data;
-            return data;
-        } catch (err) {
-            console.log('Data not getting', err);
-            return null;
-        }
-    }
-
-    useEffect(() => {
-        const fetchData = async () => {
-            const idArr = document.URL.split('/');
-            let id = idArr[idArr.length - 1];
-
-            const data = await fetchDetails(id);
-            if (data) {
-                setInputs({
-                    title: data.blog.title,
-                    description: data.blog.description,
-                    image: data.blog.image,
-                });
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    async function sendRequest(id) {
-        const formData = new FormData();
-        formData.append('title', inputs.title);
-        formData.append('description', inputs.description);
-        formData.append('image', inputs.image, inputs.image.name);
-
-        try {
-            const res = await axios.put(
-                `http://localhost:5000/api/blog/update/${id}`,
-                formData
-            );
-            const data = res.data;
-            console.log(data);
-            return data;
+            setBlog(data.blog);
+            setInputs({ title: data.blog.title, description: data.blog.description });
         } catch (err) {
             console.log(err);
-            return null;
         }
+    }, [id]);
+
+    useEffect(() => {
+        fetchDetails();
+    }, [fetchDetails, id]);
+
+    async function sendRequest() {
+        const res = await axios.put(`http://localhost:5000/api/blog/update/${id}`, {
+            title: inputs.title,
+            description: inputs.description
+        }).catch(err => console.log(err));
+
+        const data = await res.data;
+        return data;
     }
 
-    const handleChange = (e) => {
-        setInputs((prevInputs) => {
-            if (!e.target.files || Object.keys(e.target.files).length === 0) {
-                return {
-                    ...prevInputs,
-                    [e.target.name]: e.target.value,
-                };
-            }
-
-            return {
-                ...prevInputs,
-                [e.target.name]: e.target.value,
-                image: e.target.files[0],
-            };
-        });
-    };
-
-    const handleSubmit = (e) => {
+    function handleSubmit(e) {
         e.preventDefault();
-        const idArr = document.URL.split('/');
-        let id = idArr[idArr.length - 1];
-        sendRequest(id)
-            .then((data) => console.log(data))
-            .then(() => {
-                window.location.replace('/myBlogs');
-            })
-            .catch(() => console.log('Can not update'));
-    };
+        console.log(inputs);
+        sendRequest()
+            .then(data => console.log(data))
+            .then(() => navigate("/myBlogs"));
+    }
 
     return (
-        <>
-            <header
-                className="masthead"
-                style={{ backgroundImage: `url('http://localhost:5000${inputs.image}')` }}
-            >
-                <div className="container position-relative px-4 px-lg-5">
-                    <div className="row gx-4 gx-lg-5 justify-content-center">
-                        <div className="col-md-10 col-lg-8 col-xl-7">
-                            <div className="page-heading">
-                                <h1>{inputs.title}</h1>
-                                <span className="subheading">{inputs.description}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            {/* Post Content*/}
+        <div>
             {inputs && (
-                <div className="container px-4 px-lg-5">
-                    <div className="row gx-4 gx-lg-5 justify-content-center">
-                        <div className="col-md-10 col-lg-8 col-xl-7">
-                            <form action="/blogs" method="POST" onSubmit={handleSubmit}>
-                                <div className="form-floating">
-                                    <input
-                                        className="form-control"
-                                        id="title"
-                                        name="title"
-                                        type="text"
-                                        placeholder="Enter the title..."
-                                        value={inputs.title}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                    <label htmlFor="title">Title</label>
-                                </div>
-
-                                <div className="form-floating">
-                                    <textarea
-                                        className="form-control"
-                                        id="description"
-                                        name="description"
-                                        placeholder="Enter your description here..."
-                                        value={inputs.description}
-                                        onChange={handleChange}
-                                        required
-                                    ></textarea>
-                                    <label htmlFor="description">Description</label>
-                                </div>
-                                <div className="form-floating">
-                                    <input
-                                        className="form-control"
-                                        id="image"
-                                        name="image"
-                                        type="file"
-                                        placeholder="Upload an Image"
-                                        onChange={handleChange}
-                                        required
-                                    ></input>
-                                    <label htmlFor="image">Image</label>
-                                </div>
-                                <br />
-
-                                {/* Submit Button*/}
-                                <div style={{ textAlign: 'center' }}>
-                                    <button
-                                        id="submitButton"
-                                        className="btn btn-primary text-uppercase"
-                                        type="submit"
-                                    >
-                                        Update
-                                    </button>
-                                </div>
-                                <br />
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                <form onSubmit={handleSubmit}>
+                    <Box
+                        border={3}
+                        borderColor='linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,19,121,1) 0%, rgba(0,212,255,1) 100%)'
+                        borderRadius={10}
+                        boxShadow="10px 10px 20px #ccc"
+                        padding={3}
+                        margin={"auto"}
+                        marginTop={3}
+                        display='flex'
+                        flexDirection={'column'}
+                        width={"80%"}
+                    >
+                        <Typography
+                            fontWeight={'bold'}
+                            padding={3}
+                            color="grey"
+                            variant='h2'
+                            textAlign='center'
+                        >
+                            Update Blog
+                        </Typography>
+                        <InputLabel sx={labelStyle}>Title</InputLabel>
+                        <TextField name='title' onChange={handleChange} value={inputs.title} margin='auto' variant='outlined' />
+                        <InputLabel sx={labelStyle}>Description</InputLabel>
+                        <TextField name='description' onChange={handleChange} value={inputs.description} margin='auto' variant='outlined' />
+                        <Button type="submit" sx={{ mt: 2, borderRadius: 4 }} variant='contained' color='warning'>
+                            Submit
+                        </Button>
+                    </Box>
+                </form>
             )}
-        </>
+        </div>
     );
 }
 

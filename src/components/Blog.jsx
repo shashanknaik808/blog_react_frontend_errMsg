@@ -1,105 +1,73 @@
-import React, { useEffect, useState } from 'react';
+import { Avatar, Box, Card, CardContent, CardHeader, CardMedia, IconButton, Typography } from '@mui/material';
+import React from 'react';
+import { red } from '@mui/material/colors';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import { useNavigate } from 'react-router-dom';
+import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { useStyles } from './utils';
 
-function Blog() {
-    const [blog, setBlog] = useState(null);
+function Blog(props) {
+    const classes = useStyles();
+    console.log(props.title, props.isUser);
+    const navigate = useNavigate();
 
-    async function fetchDetails(id) {
-        try {
-            const res = await axios.get(`http://localhost:5000/api/blog/${id}`);
-            const data = res.data;
-            return data;
-        } catch (err) {
-            console.log("Data not getting", err);
-            return null;
-        }
+    function handleEdit(e) {
+        navigate(`/myBlogs/${props.id}`)
     }
 
-    async function deleteRequest(id) {
-        try {
-            const res = await axios.delete(`http://localhost:5000/api/blog/${id}`);
-            const data = res.data;
-            return data;
-        } catch (err) {
-            console.log(err);
-            return null;
-        }
+    async function deleteRequest() {
+        const res = await axios.delete(`http://localhost:5000/api/blog/${props.id}`)
+            .catch(err => console.log(err))
+        const data = await res.data;
+        return data;
     }
-
-    const handleDelete = () => {
-        const idArr = document.URL.split('/');
-        let id = idArr[idArr.length - 1];
-        deleteRequest(id);
-    };
-
-    useEffect(() => {
-        const fetchData = async () => {
-            const idArr = document.URL.split('/');
-            let id = idArr[idArr.length - 1];
-
-            const data = await fetchDetails(id);
-            if (data) {
-                setBlog(data.blog);
-            }
-        };
-
-        fetchData();
-    }, []);
-
+    function handleDelete() {
+        deleteRequest().then(() => navigate("/")).then(() => navigate("/blogs"))
+    }
     return (
-        <>
-            {blog === null ? (
-                <h1>Loading</h1>
-            ) : (
-                <div>
-                    <header
-                        className="masthead"
-                        style={{
-                            backgroundImage: `url('http://localhost:5000${blog.image}')`,
-                        }}
-                    >
-                        <div className="container position-relative px-4 px-lg-5">
-                            <div className="row gx-4 gx-lg-5 justify-content-center">
-                                <div className="col-md-10 col-lg-8 col-xl-7">
-                                    <div className="post-heading">
-                                        <h1>{blog.title}</h1>
-                                        <span className="meta">
-                                            Posted by {blog.user.name}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </header>
-                    <article className="mb-4">
-                        <div className="container px-4 px-lg-5">
-                            <div className="row gx-4 gx-lg-5 justify-content-center">
-                                <div className="col-md-10 col-lg-8 col-xl-7">
-                                    <p>{blog.description}</p>
-                                    {(blog.user._id === localStorage.getItem('userID')) && (
-                                        <>
-                                            <div>
-                                                <Link to={`/editBlog/${blog._id}`}>
-                                                    <i className="fa-solid fa-pen-to-square"></i>
-                                                </Link>
-                                                <Link to={`/myBlogs`} onClick={handleDelete}>
-                                                    <i
-                                                        className="fa-solid fa-trash"
-                                                        style={{ marginLeft: '20px' }}
-                                                    ></i>
-                                                </Link>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-                </div>
+        <Card sx={{
+            width: '40%', margin: 'auto', mt: 2, padding: 2, boxShadow: "5px 5px 10px #ccc",
+            ":hover": {
+                boxShadow: "10px 10px 20px #ccc"
+            }
+        }}>
+
+            {props.isUser && (
+                <Box display='flex'>
+                    <IconButton onClick={handleEdit} sx={{ marginLeft: 'auto' }}><EditIcon color='warning' /></IconButton>
+                    <IconButton onClick={handleDelete}><DeleteForeverIcon color='warning' /></IconButton>
+                </Box>
             )}
-        </>
-    );
+            <CardHeader
+                avatar={
+                    <Avatar className={classes.font} sx={{ bgcolor: red[500] }} aria-label="recipe">
+                        {props.user ? props.user.charAt(0) : ""}
+                    </Avatar>
+                }
+                action={
+                    <IconButton aria-label="settings">
+                        <MoreVertIcon />
+                    </IconButton>
+                }
+                title={props.title}
+                subheader="September 14, 2016"
+            />
+            <CardMedia
+                component="img"
+                height="194"
+                image={props.imageURL}
+                alt="Paella dish"
+            />
+            <CardContent>
+                <Typography className={classes.font} variant="body2" color="text.secondary">
+                    <b>{props.user}</b>{":"}
+                    {props.description}
+                </Typography>
+            </CardContent>
+        </Card>
+    )
 }
 
 export default Blog;
