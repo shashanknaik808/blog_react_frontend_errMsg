@@ -5,40 +5,40 @@ import { useNavigate } from 'react-router-dom';
 
 function Sample() {
     const navigate = useNavigate();
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [inputs, setInputs] = useState({
+
+    const [formData, setFormData] = useState({
         email: "",
-        password: ""
+        password: "",
+        isLoggedIn: false,
+        error: "",
+        successMessage: "",
     });
-    const [error, setError] = useState("");
-    const [successMessage, setSuccessMessage] = useState("");
 
     function handleChange(e) {
-        setInputs((prevState) => ({
-            ...prevState,
-            [e.target.name]: e.target.value
+        setFormData((prevData) => ({
+            ...prevData,
+            [e.target.name]: e.target.value,
+            error: "",
+            successMessage: "", // Clear success message when the user types
         }));
-        // Clear the error and success messages when the user types
-        setError("");
-        setSuccessMessage("");
     }
 
     async function sendRequest() {
         try {
             const res = await axios.post("http://localhost:5000/api/user/login", {
-                email: inputs.email,
-                password: inputs.password
+                email: formData.email,
+                password: formData.password
             });
 
             const data = await res.data;
             return data;
         } catch (err) {
             if (err.response?.status === 404) {
-                setError("User does not exist");
+                setFormData((prevData) => ({ ...prevData, error: "User does not exist" }));
             } else if (err.response?.status === 400) {
-                setError("Invalid password");
+                setFormData((prevData) => ({ ...prevData, error: "Invalid password" }));
             } else {
-                setError("An error occurred. Please try again later.");
+                setFormData((prevData) => ({ ...prevData, error: "An error occurred. Please try again later." }));
             }
             throw err;
         }
@@ -51,12 +51,15 @@ function Sample() {
             const data = await sendRequest();
             const userId = data?.user?._id;
             localStorage.setItem("userID", userId);
-            setIsLoggedIn(true);
-            setSuccessMessage("Login successful");
+            setFormData((prevData) => ({
+                ...prevData,
+                isLoggedIn: true,
+                successMessage: "Login successful",
+            }));
             navigate("/blogs");
         } catch (error) {
             console.error("Error:", error);
-            setIsLoggedIn(false);
+            setFormData((prevData) => ({ ...prevData, isLoggedIn: false }));
         }
     }
 
@@ -76,12 +79,12 @@ function Sample() {
                     borderRadius={5}
                 >
                     <Typography padding={3} textAlign="center">Login</Typography>
-                    <TextField id="outlined-helperText" label="Email" defaultValue={inputs.email} variant="outlined" name="email" onChange={handleChange} margin="normal" />
-                    <TextField id="outlined-helperText" label="Password" type="password" defaultValue={inputs.password} variant="outlined" name="password" onChange={handleChange} margin="normal" />
+                    <TextField id="outlined-helperText" label="Email" value={formData.email} variant="outlined" name="email" onChange={handleChange} margin="normal" />
+                    <TextField id="outlined-helperText" label="Password" type="password" value={formData.password} variant="outlined" name="password" onChange={handleChange} margin="normal" />
                     <Button type="submit" variant="contained" sx={{ borderRadius: 3, marginTop: 3 }} color="warning">Submit</Button>
                 </Box>
             </form>
-            {error && (
+            {formData.error && (
                 <Box
                     display="flex"
                     flexDirection="column"
@@ -92,11 +95,11 @@ function Sample() {
                         error
                         id="outlined-error"
                         label="Error"
-                        defaultValue={error}
+                        value={formData.error}
                     />
                 </Box>
             )}
-            {successMessage && (
+            {formData.successMessage && (
                 <Box
                     display="flex"
                     flexDirection="column"
@@ -106,8 +109,8 @@ function Sample() {
                     <TextField
                         id="outlined-success"
                         label="Success"
-                        defaultValue={successMessage}
-                        sx={{ color: 'green' }}
+                        value={formData.successMessage}
+                        InputProps={{ style: { color: 'green' } }}
                     />
                 </Box>
             )}
