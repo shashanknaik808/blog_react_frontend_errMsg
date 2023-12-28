@@ -10,12 +10,15 @@ function Sample() {
         email: "",
         password: ""
     });
+    const [error, setError] = useState("");
 
     function handleChange(e) {
         setInputs((prevState) => ({
             ...prevState,
             [e.target.name]: e.target.value
         }));
+        // Clear the error message when the user types
+        setError("");
     }
 
     async function sendRequest() {
@@ -29,9 +32,11 @@ function Sample() {
             return data;
         } catch (err) {
             if (err.response?.status === 404) {
-                alert("User does not exist");
+                setError("User does not exist");
             } else if (err.response?.status === 400) {
-                alert("Invalid password");
+                setError("Invalid password");
+            } else {
+                setError("An error occurred. Please try again later.");
             }
             throw err;
         }
@@ -39,7 +44,6 @@ function Sample() {
 
     async function handleSubmit(e) {
         e.preventDefault();
-        console.log(inputs);
 
         try {
             const data = await sendRequest();
@@ -74,19 +78,21 @@ function Sample() {
                     <Button type="submit" variant="contained" sx={{ borderRadius: 3, marginTop: 3 }} color="warning">Submit</Button>
                 </Box>
             </form>
-            <Box
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-                marginTop={2}
-            >
-                <TextField
-                    error
-                    id="outlined-error"
-                    label="Error"
-                    defaultValue="Hello World"
-                />
-            </Box>
+            {error && (
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    marginTop={2}
+                >
+                    <TextField
+                        error
+                        id="outlined-error"
+                        label="Error"
+                        defaultValue={error}
+                    />
+                </Box>
+            )}
         </div>
     );
 }
