@@ -11,14 +11,16 @@ function Sample() {
         password: ""
     });
     const [error, setError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
 
     function handleChange(e) {
         setInputs((prevState) => ({
             ...prevState,
             [e.target.name]: e.target.value
         }));
-        // Clear the error message when the user types
+        // Clear the error and success messages when the user types
         setError("");
+        setSuccessMessage("");
     }
 
     async function sendRequest() {
@@ -50,6 +52,7 @@ function Sample() {
             const userId = data?.user?._id;
             localStorage.setItem("userID", userId);
             setIsLoggedIn(true);
+            setSuccessMessage("Login successful");
             navigate("/blogs");
         } catch (error) {
             console.error("Error:", error);
@@ -90,6 +93,21 @@ function Sample() {
                         id="outlined-error"
                         label="Error"
                         defaultValue={error}
+                    />
+                </Box>
+            )}
+            {successMessage && (
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    marginTop={2}
+                >
+                    <TextField
+                        id="outlined-success"
+                        label="Success"
+                        defaultValue={successMessage}
+                        sx={{ color: 'green' }}
                     />
                 </Box>
             )}
