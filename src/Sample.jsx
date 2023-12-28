@@ -10,7 +10,9 @@ function Sample() {
         email: "",
         password: "",
         isLoggedIn: false,
-        error: "",
+        emailError: "",
+        passwordError: "",
+        serverError: "",
         successMessage: "",
     });
 
@@ -18,8 +20,10 @@ function Sample() {
         setFormData((prevData) => ({
             ...prevData,
             [e.target.name]: e.target.value,
-            error: "",
-            successMessage: "", // Clear success message when the user types
+            emailError: "",
+            passwordError: "",
+            serverError: "",
+            successMessage: "",
         }));
     }
 
@@ -33,13 +37,27 @@ function Sample() {
             const data = await res.data;
             return data;
         } catch (err) {
+            let errors = [];
+
             if (err.response?.status === 404) {
-                setFormData((prevData) => ({ ...prevData, error: "User does not exist" }));
-            } else if (err.response?.status === 400) {
-                setFormData((prevData) => ({ ...prevData, error: "Invalid password" }));
-            } else {
-                setFormData((prevData) => ({ ...prevData, error: "An error occurred. Please try again later." }));
+                errors.push("User does not exist");
             }
+
+            if (err.response?.status === 400) {
+                errors.push("Invalid password");
+            }
+
+            if (errors.length === 0) {
+                errors.push("Internal server error");
+            }
+
+            setFormData((prevData) => ({
+                ...prevData,
+                emailError: errors.includes("User does not exist") ? "User does not exist" : "",
+                passwordError: errors.includes("Invalid password") ? "Invalid password" : "",
+                serverError: errors.includes("Internal server error") ? "Internal server error" : "",
+            }));
+
             throw err;
         }
     }
@@ -59,7 +77,9 @@ function Sample() {
             navigate("/blogs");
         } catch (error) {
             console.error("Error:", error);
-            setFormData((prevData) => ({ ...prevData, isLoggedIn: false }));
+            setFormData((prevData) => ({
+                ...prevData,
+            }));
         }
     }
 
@@ -79,26 +99,37 @@ function Sample() {
                     borderRadius={5}
                 >
                     <Typography padding={3} textAlign="center">Login</Typography>
-                    <TextField id="outlined-helperText" label="Email" value={formData.email} variant="outlined" name="email" onChange={handleChange} margin="normal" />
-                    <TextField id="outlined-helperText" label="Password" type="password" value={formData.password} variant="outlined" name="password" onChange={handleChange} margin="normal" />
+                    <TextField
+                        id="outlined-helperText"
+                        label="Email"
+                        value={formData.email}
+                        variant="outlined"
+                        name="email"
+                        onChange={handleChange}
+                        margin="normal"
+                        error={!!formData.emailError}
+                        helperText={formData.emailError}
+                    />
+                    <TextField
+                        id="outlined-helperText"
+                        label="Password"
+                        type="password"
+                        value={formData.password}
+                        variant="outlined"
+                        name="password"
+                        onChange={handleChange}
+                        margin="normal"
+                        error={!!formData.passwordError}
+                        helperText={formData.passwordError}
+                    />
                     <Button type="submit" variant="contained" sx={{ borderRadius: 3, marginTop: 3 }} color="warning">Submit</Button>
+                    {formData.serverError && (
+                        <Typography color="error" marginTop={2}>
+                            {formData.serverError}
+                        </Typography>
+                    )}
                 </Box>
             </form>
-            {formData.error && (
-                <Box
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="center"
-                    marginTop={2}
-                >
-                    <TextField
-                        error
-                        id="outlined-error"
-                        label="Error"
-                        value={formData.error}
-                    />
-                </Box>
-            )}
             {formData.successMessage && (
                 <Box
                     display="flex"
@@ -106,12 +137,9 @@ function Sample() {
                     alignItems="center"
                     marginTop={2}
                 >
-                    <TextField
-                        id="outlined-success"
-                        label="Success"
-                        value={formData.successMessage}
-                        InputProps={{ style: { color: 'green' } }}
-                    />
+                    <Typography component="h1" variant="h5" style={{ color: 'green' }}>
+                        {formData.successMessage}
+                    </Typography>
                 </Box>
             )}
         </div>
