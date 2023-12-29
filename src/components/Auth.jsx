@@ -1,5 +1,5 @@
-import { Box, Button, TextField, Typography } from '@mui/material';
 import React, { useState } from 'react';
+import { Box, Button, TextField, Typography } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,6 +10,11 @@ function Auth(props) {
         email: "",
         password: ""
     });
+    const [errors, setErrors] = useState({
+        emailError: "",
+        passwordError: "",
+        serverError: ""
+    });
     const [isSignup, setIsSignup] = useState(false);
 
     function handleChange(e) {
@@ -17,30 +22,53 @@ function Auth(props) {
             ...prevState,
             [e.target.name]: e.target.value
         }));
+
+        setErrors((prevErrors) => ({
+            ...prevErrors,
+            emailError: "",
+            passwordError: "",
+            serverError: ""
+        }));
     }
 
     async function sendRequest(type) {
-        const res = await axios.post(`http://localhost:5000/api/user/${type}`, {
-            name: inputs.name,
-            email: inputs.email,
-            password: inputs.password
-        }).catch(err => {
-            if (err.response?.status === 404) {
-                alert("User does not exist");
-                props.setIsLoggedIn(false);
-            } else if (err.response?.status === 400) {
-                alert("Invalid password");
-                props.setIsLoggedIn(false);
-            }
-        });
+        try {
+            const res = await axios.post(`http://localhost:5000/api/user/${type}`, {
+                name: inputs.name,
+                email: inputs.email,
+                password: inputs.password
+            });
 
-        const data = await res.data;
-        return data;
+            const data = await res.data;
+            return data;
+        } catch (err) {
+            let errors = [];
+
+            if (err.response?.status === 404) {
+                errors.push("User does not exist");
+            }
+
+            if (err.response?.status === 400) {
+                errors.push("Invalid password");
+            }
+
+            if (errors.length === 0) {
+                errors.push("Internal server error");
+            }
+
+            setErrors((prevErrors) => ({
+                ...prevErrors,
+                emailError: errors.includes("User does not exist") ? "User does not exist" : "",
+                passwordError: errors.includes("Invalid password") ? "Invalid password" : "",
+                serverError: errors.includes("Internal server error") ? "Internal server error" : "",
+            }));
+
+            throw err;
+        }
     }
 
     async function handleSubmit(e) {
         e.preventDefault();
-        console.log(inputs);
 
         try {
             if (isSignup) {
@@ -65,8 +93,8 @@ function Auth(props) {
                     maxWidth={400}
                     display="flex"
                     flexDirection="column"
-                    alignItems={"center"}
-                    justifyContent={"center"}
+                    alignItems="center"
+                    justifyContent="center"
                     boxShadow="10px 10px 20px #ccc"
                     padding={3}
                     margin='auto'
@@ -74,11 +102,35 @@ function Auth(props) {
                     borderRadius={5}
                 >
                     <Typography padding={3} textAlign='center'>{isSignup ? "Sign Up" : "Login"}</Typography>
-                    {isSignup && <TextField name='name' onChange={handleChange} value={inputs.name} type='name' placeholder='Name' margin='normal' />}{" "}
-                    <TextField name='email' onChange={handleChange} value={inputs.email} type='email' placeholder='Email' margin='normal' />
-                    <TextField name='password' onChange={handleChange} value={inputs.password} type='password' placeholder='Password' margin='normal' />
+                    {isSignup && <TextField name='name' onChange={handleChange} value={inputs.name} variant='outlined' label='Name' margin='normal' />}{" "}
+                    <TextField
+                        name='email'
+                        onChange={handleChange}
+                        value={inputs.email}
+                        variant='outlined'
+                        label='Email'
+                        margin='normal'
+                        error={!!errors.emailError}
+                        helperText={errors.emailError}
+                    />
+                    <TextField
+                        name='password'
+                        onChange={handleChange}
+                        value={inputs.password}
+                        variant='outlined'
+                        label='Password'
+                        type='password'
+                        margin='normal'
+                        error={!!errors.passwordError}
+                        helperText={errors.passwordError}
+                    />
                     <Button type='submit' variant='contained' sx={{ borderRadius: 3, marginTop: 3 }} color='warning'>Submit</Button>
-                    <Button onClick={() => setIsSignup(!isSignup)} sx={{ borderRadius: 3, marginTop: 3 }} >Change to {isSignup ? "Login" : "Sign up"}</Button>
+                    <Button onClick={() => setIsSignup(!isSignup)} sx={{ borderRadius: 3, marginTop: 3 }}>Change to {isSignup ? "Login" : "Sign up"}</Button>
+                    {errors.serverError && (
+                        <Typography color="error" marginTop={2}>
+                            {errors.serverError}
+                        </Typography>
+                    )}
                 </Box>
             </form>
         </div>
