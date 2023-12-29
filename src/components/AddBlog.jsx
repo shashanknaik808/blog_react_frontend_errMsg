@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { Box, Button, InputLabel, TextField, Typography } from '@mui/material';
+import { Box, Button, TextField, Typography } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useStyles } from './utils.jsx';
-
-const labelStyle = { mb: 1, mt: 2, fontSize: '24px', fontWeight: 'bold' };
 
 function AddBlog() {
     const classes = useStyles();
@@ -99,38 +97,43 @@ function AddBlog() {
                         padding={3}
                         color="grey"
                         variant='h2'
-                        textAlign='center'>Post Your Blog</Typography>
-                    <InputLabel className={classes.font} sx={labelStyle}>Title</InputLabel>
+                        textAlign='center'
+                    >
+                        Post Your Blog
+                    </Typography>
                     <TextField
                         name='title'
                         onChange={handleChange}
                         value={inputs.title}
-                        margin='auto'
+                        margin='normal'
                         variant='outlined'
+                        label='Title'
                         error={!!errors.titleError}
                         helperText={errors.titleError}
                     />
-                    <InputLabel className={classes.font} sx={labelStyle}>Description</InputLabel>
                     <TextField
                         name='description'
                         onChange={handleChange}
                         value={inputs.description}
-                        margin='auto'
+                        margin='normal'
                         variant='outlined'
+                        label='Description'
                         error={!!errors.descriptionError}
                         helperText={errors.descriptionError}
                     />
-                    <InputLabel className={classes.font} sx={labelStyle}>Image</InputLabel>
                     <TextField
                         name='imageURL'
                         onChange={handleChange}
                         value={inputs.imageURL}
-                        margin='auto'
+                        margin='normal'
                         variant='outlined'
+                        label='Image'
                         error={!!errors.imageURLError}
                         helperText={errors.imageURLError}
                     />
-                    <Button type="submit" sx={{ mt: 2, borderRadius: 4 }} variant='contained' color='warning'>Submit</Button>
+                    <Button type="submit" sx={{ mt: 2, borderRadius: 4 }} variant='contained' color='warning'>
+                        Submit
+                    </Button>
                 </Box>
             </form>
         </div>
