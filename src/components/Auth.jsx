@@ -5,38 +5,37 @@ import { useNavigate } from 'react-router-dom';
 
 function Auth(props) {
     const navigate = useNavigate();
-    const [inputs, setInputs] = useState({
+    const [formData, setFormData] = useState({
         name: "",
         email: "",
-        password: ""
-    });
-    const [errors, setErrors] = useState({
-        emailError: "",
-        passwordError: "",
-        serverError: ""
-    });
-    const [isSignup, setIsSignup] = useState(false);
-
-    function handleChange(e) {
-        setInputs((prevState) => ({
-            ...prevState,
-            [e.target.name]: e.target.value
-        }));
-
-        setErrors((prevErrors) => ({
-            ...prevErrors,
+        password: "",
+        isSignup: false,
+        errors: {
             emailError: "",
             passwordError: "",
-            serverError: ""
+            serverError: "",
+        },
+    });
+
+    function handleChange(e) {
+        setFormData((prevData) => ({
+            ...prevData,
+            [e.target.name]: e.target.value,
+            errors: {
+                ...prevData.errors,
+                emailError: "",
+                passwordError: "",
+                serverError: "",
+            },
         }));
     }
 
     async function sendRequest(type) {
         try {
             const res = await axios.post(`http://localhost:5000/api/user/${type}`, {
-                name: inputs.name,
-                email: inputs.email,
-                password: inputs.password
+                name: formData.name,
+                email: formData.email,
+                password: formData.password,
             });
 
             const data = await res.data;
@@ -56,11 +55,14 @@ function Auth(props) {
                 errors.push("Internal server error");
             }
 
-            setErrors((prevErrors) => ({
-                ...prevErrors,
-                emailError: errors.includes("User does not exist") ? "User does not exist" : "",
-                passwordError: errors.includes("Invalid password") ? "Invalid password" : "",
-                serverError: errors.includes("Internal server error") ? "Internal server error" : "",
+            setFormData((prevData) => ({
+                ...prevData,
+                errors: {
+                    ...prevData.errors,
+                    emailError: errors.includes("User does not exist") ? "User does not exist" : "",
+                    passwordError: errors.includes("Invalid password") ? "Invalid password" : "",
+                    serverError: errors.includes("Internal server error") ? "Internal server error" : "",
+                },
             }));
 
             throw err;
@@ -71,7 +73,7 @@ function Auth(props) {
         e.preventDefault();
 
         try {
-            if (isSignup) {
+            if (formData.isSignup) {
                 await sendRequest("signup");
                 navigate("/auth");
             } else {
@@ -101,34 +103,36 @@ function Auth(props) {
                     marginTop={5}
                     borderRadius={5}
                 >
-                    <Typography padding={3} textAlign='center'>{isSignup ? "Sign Up" : "Login"}</Typography>
-                    {isSignup && <TextField name='name' onChange={handleChange} value={inputs.name} variant='outlined' label='Name' margin='normal' />}{" "}
+                    <Typography padding={3} textAlign='center'>{formData.isSignup ? "Sign Up" : "Login"}</Typography>
+                    {formData.isSignup && <TextField name='name' onChange={handleChange} value={formData.name} variant='outlined' label='Name' margin='normal' />}{" "}
                     <TextField
                         name='email'
                         onChange={handleChange}
-                        value={inputs.email}
+                        value={formData.email}
                         variant='outlined'
                         label='Email'
                         margin='normal'
-                        error={!!errors.emailError}
-                        helperText={errors.emailError}
+                        error={!!formData.errors.emailError}
+                        helperText={formData.errors.emailError}
                     />
                     <TextField
                         name='password'
                         onChange={handleChange}
-                        value={inputs.password}
+                        value={formData.password}
                         variant='outlined'
                         label='Password'
                         type='password'
                         margin='normal'
-                        error={!!errors.passwordError}
-                        helperText={errors.passwordError}
+                        error={!!formData.errors.passwordError}
+                        helperText={formData.errors.passwordError}
                     />
                     <Button type='submit' variant='contained' sx={{ borderRadius: 3, marginTop: 3 }} color='warning'>Submit</Button>
-                    <Button onClick={() => setIsSignup(!isSignup)} sx={{ borderRadius: 3, marginTop: 3 }}>Change to {isSignup ? "Login" : "Sign up"}</Button>
-                    {errors.serverError && (
+                    <Button onClick={() => setFormData((prevData) => ({ ...prevData, isSignup: !prevData.isSignup }))} sx={{ borderRadius: 3, marginTop: 3 }}>
+                        Change to {formData.isSignup ? "Login" : "Sign up"}
+                    </Button>
+                    {formData.errors.serverError && (
                         <Typography color="error" marginTop={2}>
-                            {errors.serverError}
+                            {formData.errors.serverError}
                         </Typography>
                     )}
                 </Box>
